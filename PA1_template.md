@@ -80,10 +80,28 @@ summary(sum_daily)
 ```
 
 ## What is the average daily activity pattern?
-No.1 create the graph of the average daily pattern.
+Get the Interval Average
 
 ```r
 sum_daily2<- actdata %>% group_by(interval) %>% summarise(meansteps = mean(steps, na.rm=TRUE))
+sum_daily2
+```
+
+```
+## Source: local data frame [288 x 2]
+## 
+##    interval meansteps
+## 1         0 1.7169811
+## 2         5 0.3396226
+## 3        10 0.1320755
+## 4        15 0.1509434
+## 5        20 0.0754717
+## 6        25 2.0943396
+## 7        30 0.5283019
+## 8        35 0.8679245
+## 9        40 0.0000000
+## 10       45 1.4716981
+## ..      ...       ...
 ```
 
 Plot the data as time interval 
@@ -109,13 +127,31 @@ filter(sum_daily2, meansteps == max(meansteps))
 ```
 
 ## Imputing missing values
-Replace the NA values with the 5 minutes interval average calculated above and then re calculate the daily sum
+Replace the NA values with the 5 minutes interval average calculated above and then re-calculate the daily sum
 
 ```r
 library(dplyr)
 actdata2 <- merge(actdata,sum_daily2, by.X="interval")
 actdata3 <- actdata2 %>% mutate(goodsteps = ifelse(is.na(steps),meansteps,steps)) %>% select(goodsteps, date, interval) %>% arrange(date,interval) 
 sum_daily3 <- actdata3 %>% group_by(date) %>% summarise(sumsteps = sum(goodsteps, na.rm=TRUE))
+sum_daily3
+```
+
+```
+## Source: local data frame [61 x 2]
+## 
+##          date sumsteps
+## 1  2012-10-01 10766.19
+## 2  2012-10-02   126.00
+## 3  2012-10-03 11352.00
+## 4  2012-10-04 12116.00
+## 5  2012-10-05 13294.00
+## 6  2012-10-06 15420.00
+## 7  2012-10-07 11015.00
+## 8  2012-10-08 10766.19
+## 9  2012-10-09 12811.00
+## 10 2012-10-10  9900.00
+## ..        ...      ...
 ```
 
 Recreate the Histogram from the new data
@@ -144,15 +180,34 @@ summary(sum_daily3)
 ```
 
 The Graph shows that less frquency of 0 steps
-Also the mean and the median are closer (equal) to each other. 
+and also the mean and the median are closer (equal) to each other. 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-Add column to identify weekday and weekend the calculate the average interval.
+Add column to identify weekday and weekend the calculate the interval average
 
 ```r
 actdata4 <- actdata3 %>% mutate(weektype = ifelse(weekdays(as.Date(date)) %in% c("Saturday","Sunday"),"weekend","weekday"))
 meanweek <- actdata4  %>% group_by(weektype,interval) %>% summarise(meansteps = mean(goodsteps, na.rm=TRUE))
+meanweek
+```
+
+```
+## Source: local data frame [576 x 3]
+## Groups: weektype
+## 
+##    weektype interval  meansteps
+## 1   weekday        0 2.25115304
+## 2   weekday        5 0.44528302
+## 3   weekday       10 0.17316562
+## 4   weekday       15 0.19790356
+## 5   weekday       20 0.09895178
+## 6   weekday       25 1.59035639
+## 7   weekday       30 0.69266247
+## 8   weekday       35 1.13794549
+## 9   weekday       40 0.00000000
+## 10  weekday       45 1.79622642
+## ..      ...      ...        ...
 ```
 
 Plot the graph for weekday and weekend
