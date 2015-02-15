@@ -4,7 +4,6 @@ Date: 2/14/2015
 
 ## Loading and preprocessing the data
 Load the activity.csv file from the workspace directory
-No. 1
 
 ```r
 actdata <- read.csv("activity.csv")
