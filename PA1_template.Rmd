@@ -1,25 +1,88 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
 output: 
-  html_document:
+  html_document: 
     keep_md: true
 ---
-
+Author: T. Aristanto
+Date: 2/14/2015
 
 ## Loading and preprocessing the data
-
-
+Load the activity.csv file from the workspace directory
+No. 1
+```{r load data, echo = TRUE}
+actdata <- read.csv("activity.csv")
+```
 
 ## What is mean total number of steps taken per day?
+Calculate the daily sum of steps. 
+```{r daily steps info, echo = TRUE}
+library(dplyr)
+## Calculate Daily Sum
+sum_daily <- actdata %>% group_by(date) %>% summarise(sumsteps = sum(steps, na.rm=TRUE))
+sum_daily
+```
 
+Create the Histogram.
+```{r create histogram 1, echo = TRUE}
+## Create the Histogram
+hist(as.numeric(sum_daily$sumsteps), breaks = 30, main = "Histogram of Daily Steps taken", xlab = "Steps taken", ylab ="Frequency")
+```
 
+Get the mean and median number.
+```{r get the mean and median 1, echo = TRUE}
+summary(sum_daily)
+```
 
 ## What is the average daily activity pattern?
+No.1 create the graph of the average daily pattern.
+```{r daily pattern, cache = FALSE, echo = TRUE}
+sum_daily2<- actdata %>% group_by(interval) %>% summarise(meansteps = mean(steps, na.rm=TRUE))
+```
 
+Plot the data as time interval 
+```{r time interval 1, echo = TRUE}
+library(ggplot2)
+ggplot(sum_daily2, aes(as.numeric(interval), meansteps)) + geom_line() + scale_x_discrete(breaks=seq(0, 2400, by=100)) + ggtitle("Average steps every 5 minutes observations") + xlab("5 Minute Observation Interval (in minutes)") + ylab("Steps taken")
+```
 
+No.2 From The function below it can be seen that the max steps occurs at interval 835:
+```{r daily max, echo = TRUE}
+filter(sum_daily2, meansteps == max(meansteps))
+```
 
 ## Imputing missing values
+Replace the NA values with the 5 minutes interval average calculated above and then re calculate the daily sum
+```{r imputing missing value, echo = TRUE}
+library(dplyr)
+actdata2 <- merge(actdata,sum_daily2, by.X="interval")
+actdata3 <- actdata2 %>% mutate(goodsteps = ifelse(is.na(steps),meansteps,steps)) %>% select(goodsteps, date, interval) %>% arrange(date,interval) 
+sum_daily3 <- actdata3 %>% group_by(date) %>% summarise(sumsteps = sum(goodsteps, na.rm=TRUE))
+```
 
+Recreate the Histogram from the new data
+```{r create histogram 2, echo = TRUE}
+hist(as.numeric(sum_daily3$sumsteps), breaks = 30, main = "Histogram of Daily Steps taken (NA cleaned)", xlab = "Steps taken", ylab ="Frequency")
+```
+
+Calculate the mean and median of the data
+```{r get mean and median 2, echo = TRUE}
+summary(sum_daily3)
+```
+
+The Graph shows that less frquency of 0 steps
+Also the mean and the median are closer (equal) to each other. 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+Add column to identify weekday and weekend the calculate the average interval.
+```{r Weekdays vs weekend, echo = TRUE}
+actdata4 <- actdata3 %>% mutate(weektype = ifelse(weekdays(as.Date(date)) %in% c("Saturday","Sunday"),"weekend","weekday"))
+meanweek <- actdata4  %>% group_by(weektype,interval) %>% summarise(meansteps = mean(goodsteps, na.rm=TRUE))
+```
+
+Plot the graph for weekday and weekend
+```{r time interval 2, echo = TRUE}
+library(ggplot2)
+ggplot(meanweek, aes(x=interval, y=meansteps)) + geom_line() + scale_x_discrete(breaks=seq(0, 2400, by=100)) + facet_grid(weektype ~ .) + ggtitle("Weekday vs Weekend Activities") + xlab("5 Minute Observation Interval (in minutes)") + ylab("Steps taken")
+```
