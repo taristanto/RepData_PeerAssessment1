@@ -118,8 +118,23 @@ hist(as.numeric(sum_daily$sumsteps), breaks = 30, main = &quot;Histogram of Dail
 </div>
 <div id="what-is-the-average-daily-activity-pattern" class="section level2">
 <h2>What is the average daily activity pattern?</h2>
-<p>No.1 create the graph of the average daily pattern.</p>
-<pre class="r"><code>sum_daily2&lt;- actdata %&gt;% group_by(interval) %&gt;% summarise(meansteps = mean(steps, na.rm=TRUE))</code></pre>
+<p>Get the Interval Average</p>
+<pre class="r"><code>sum_daily2&lt;- actdata %&gt;% group_by(interval) %&gt;% summarise(meansteps = mean(steps, na.rm=TRUE))
+sum_daily2</code></pre>
+<pre><code>## Source: local data frame [288 x 2]
+## 
+##    interval meansteps
+## 1         0 1.7169811
+## 2         5 0.3396226
+## 3        10 0.1320755
+## 4        15 0.1509434
+## 5        20 0.0754717
+## 6        25 2.0943396
+## 7        30 0.5283019
+## 8        35 0.8679245
+## 9        40 0.0000000
+## 10       45 1.4716981
+## ..      ...       ...</code></pre>
 <p>Plot the data as time interval</p>
 <pre class="r"><code>library(ggplot2)
 ggplot(sum_daily2, aes(as.numeric(interval), meansteps)) + geom_line() + scale_x_discrete(breaks=seq(0, 2400, by=100)) + ggtitle(&quot;Average steps every 5 minutes observations&quot;) + xlab(&quot;5 Minute Observation Interval (in minutes)&quot;) + ylab(&quot;Steps taken&quot;)</code></pre>
@@ -133,11 +148,26 @@ ggplot(sum_daily2, aes(as.numeric(interval), meansteps)) + geom_line() + scale_x
 </div>
 <div id="imputing-missing-values" class="section level2">
 <h2>Imputing missing values</h2>
-<p>Replace the NA values with the 5 minutes interval average calculated above and then re calculate the daily sum</p>
+<p>Replace the NA values with the 5 minutes interval average calculated above and then re-calculate the daily sum</p>
 <pre class="r"><code>library(dplyr)
 actdata2 &lt;- merge(actdata,sum_daily2, by.X=&quot;interval&quot;)
 actdata3 &lt;- actdata2 %&gt;% mutate(goodsteps = ifelse(is.na(steps),meansteps,steps)) %&gt;% select(goodsteps, date, interval) %&gt;% arrange(date,interval) 
-sum_daily3 &lt;- actdata3 %&gt;% group_by(date) %&gt;% summarise(sumsteps = sum(goodsteps, na.rm=TRUE))</code></pre>
+sum_daily3 &lt;- actdata3 %&gt;% group_by(date) %&gt;% summarise(sumsteps = sum(goodsteps, na.rm=TRUE))
+sum_daily3</code></pre>
+<pre><code>## Source: local data frame [61 x 2]
+## 
+##          date sumsteps
+## 1  2012-10-01 10766.19
+## 2  2012-10-02   126.00
+## 3  2012-10-03 11352.00
+## 4  2012-10-04 12116.00
+## 5  2012-10-05 13294.00
+## 6  2012-10-06 15420.00
+## 7  2012-10-07 11015.00
+## 8  2012-10-08 10766.19
+## 9  2012-10-09 12811.00
+## 10 2012-10-10  9900.00
+## ..        ...      ...</code></pre>
 <p>Recreate the Histogram from the new data</p>
 <pre class="r"><code>hist(as.numeric(sum_daily3$sumsteps), breaks = 30, main = &quot;Histogram of Daily Steps taken (NA cleaned)&quot;, xlab = &quot;Steps taken&quot;, ylab =&quot;Frequency&quot;)</code></pre>
 <p><img src="data:image/png;base64,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" /></p>
@@ -151,13 +181,29 @@ sum_daily3 &lt;- actdata3 %&gt;% group_by(date) %&gt;% summarise(sumsteps = sum(
 ##  2012-10-05: 1   3rd Qu.:12811  
 ##  2012-10-06: 1   Max.   :21194  
 ##  (Other)   :55</code></pre>
-<p>The Graph shows that less frquency of 0 steps Also the mean and the median are closer (equal) to each other.</p>
+<p>The Graph shows that less frquency of 0 steps and also the mean and the median are closer (equal) to each other.</p>
 </div>
 <div id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends" class="section level2">
 <h2>Are there differences in activity patterns between weekdays and weekends?</h2>
-<p>Add column to identify weekday and weekend the calculate the average interval.</p>
+<p>Add column to identify weekday and weekend the calculate the interval average</p>
 <pre class="r"><code>actdata4 &lt;- actdata3 %&gt;% mutate(weektype = ifelse(weekdays(as.Date(date)) %in% c(&quot;Saturday&quot;,&quot;Sunday&quot;),&quot;weekend&quot;,&quot;weekday&quot;))
-meanweek &lt;- actdata4  %&gt;% group_by(weektype,interval) %&gt;% summarise(meansteps = mean(goodsteps, na.rm=TRUE))</code></pre>
+meanweek &lt;- actdata4  %&gt;% group_by(weektype,interval) %&gt;% summarise(meansteps = mean(goodsteps, na.rm=TRUE))
+meanweek</code></pre>
+<pre><code>## Source: local data frame [576 x 3]
+## Groups: weektype
+## 
+##    weektype interval  meansteps
+## 1   weekday        0 2.25115304
+## 2   weekday        5 0.44528302
+## 3   weekday       10 0.17316562
+## 4   weekday       15 0.19790356
+## 5   weekday       20 0.09895178
+## 6   weekday       25 1.59035639
+## 7   weekday       30 0.69266247
+## 8   weekday       35 1.13794549
+## 9   weekday       40 0.00000000
+## 10  weekday       45 1.79622642
+## ..      ...      ...        ...</code></pre>
 <p>Plot the graph for weekday and weekend</p>
 <pre class="r"><code>library(ggplot2)
 ggplot(meanweek, aes(x=interval, y=meansteps)) + geom_line() + scale_x_discrete(breaks=seq(0, 2400, by=100)) + facet_grid(weektype ~ .) + ggtitle(&quot;Weekday vs Weekend Activities&quot;) + xlab(&quot;5 Minute Observation Interval (in minutes)&quot;) + ylab(&quot;Steps taken&quot;)</code></pre>
