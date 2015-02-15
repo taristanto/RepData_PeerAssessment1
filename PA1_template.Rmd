@@ -35,9 +35,10 @@ summary(sum_daily)
 ```
 
 ## What is the average daily activity pattern?
-No.1 create the graph of the average daily pattern.
+Get the Interval Average
 ```{r daily pattern, cache = FALSE, echo = TRUE}
 sum_daily2<- actdata %>% group_by(interval) %>% summarise(meansteps = mean(steps, na.rm=TRUE))
+sum_daily2
 ```
 
 Plot the data as time interval 
@@ -52,12 +53,13 @@ filter(sum_daily2, meansteps == max(meansteps))
 ```
 
 ## Imputing missing values
-Replace the NA values with the 5 minutes interval average calculated above and then re calculate the daily sum
+Replace the NA values with the 5 minutes interval average calculated above and then re-calculate the daily sum
 ```{r imputing missing value, echo = TRUE}
 library(dplyr)
 actdata2 <- merge(actdata,sum_daily2, by.X="interval")
 actdata3 <- actdata2 %>% mutate(goodsteps = ifelse(is.na(steps),meansteps,steps)) %>% select(goodsteps, date, interval) %>% arrange(date,interval) 
 sum_daily3 <- actdata3 %>% group_by(date) %>% summarise(sumsteps = sum(goodsteps, na.rm=TRUE))
+sum_daily3
 ```
 
 Recreate the Histogram from the new data
@@ -71,14 +73,15 @@ summary(sum_daily3)
 ```
 
 The Graph shows that less frquency of 0 steps
-Also the mean and the median are closer (equal) to each other. 
+and also the mean and the median are closer (equal) to each other. 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
-Add column to identify weekday and weekend the calculate the average interval.
+Add column to identify weekday and weekend the calculate the interval average
 ```{r Weekdays vs weekend, echo = TRUE}
 actdata4 <- actdata3 %>% mutate(weektype = ifelse(weekdays(as.Date(date)) %in% c("Saturday","Sunday"),"weekend","weekday"))
 meanweek <- actdata4  %>% group_by(weektype,interval) %>% summarise(meansteps = mean(goodsteps, na.rm=TRUE))
+meanweek
 ```
 
 Plot the graph for weekday and weekend
